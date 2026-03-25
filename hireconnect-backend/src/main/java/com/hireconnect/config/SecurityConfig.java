@@ -1,8 +1,11 @@
 package com.hireconnect.config;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,9 +31,13 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:5173}")
+    private String corsAllowedOrigins;
+
     private static final String[] PUBLIC_ENDPOINTS = {
         "/api/auth/**",
         "/api/global-admin/companies/company-login",
+        "/api/companies/**",
         "/api/company/**",
         "/api/tickets/**",
         "/api/users/**",
@@ -62,33 +69,31 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-            "http://localhost:*",
-            "http://127.0.0.1:*",
-            "https://app.truecorehr.com",
-            "https://truecorehr.com",
-            "https://*.truecorehr.com"
-        ));
+        configuration.setAllowedOriginPatterns(parseAllowedOrigins());
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "X-Tenant-Code",
-            "X-Company-Id",
-            "X-API-KEY",
-            "X-User-Role",
-            "X-User-Name",
-            "X-User-Id"
-        ));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
 
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private List<String> parseAllowedOrigins() {
+        if (corsAllowedOrigins == null || corsAllowedOrigins.isBlank()) {
+            return Arrays.asList(
+                "http://localhost:*",
+                "http://127.0.0.1:*"
+            );
+        }
+        return Arrays.stream(corsAllowedOrigins.split(","))
+                .map(String::trim)
+                .filter(v -> !v.isBlank())
+                .collect(Collectors.toList());
     }
     
     @Bean

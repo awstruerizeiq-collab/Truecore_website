@@ -32,6 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String[] PUBLIC_ENDPOINTS = {
         "/api/auth/**",
         "/api/global-admin/companies/company-login",
+        "/api/companies/**",
         "/api/company/**",
         "/api/tickets/**",
         "/api/users/**",

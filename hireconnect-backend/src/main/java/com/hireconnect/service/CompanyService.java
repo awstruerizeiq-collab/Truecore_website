@@ -37,8 +37,14 @@ public class CompanyService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private FileStorageService fileStorageService;
+
     @Value("${file.company-logo-upload-dir:${file.upload-dir:uploads/company-logos}}")
     private String companyLogoUploadDir;
+
+    @Value("${file.company-logo-storage:database}")
+    private String companyLogoStorage;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String appBaseUrl;
@@ -338,7 +344,12 @@ public class CompanyService {
         try {
             company.setLogoData(logo.getBytes());
             company.setLogoContentType(logo.getContentType());
-            company.setLogoPath("/api/companies/" + company.getId() + "/logo");
+            if ("filesystem".equalsIgnoreCase(companyLogoStorage)) {
+                String storedPath = fileStorageService.store(logo, "company-logos", "company-logo-" + company.getId());
+                company.setLogoPath(storedPath);
+            } else {
+                company.setLogoPath("/api/companies/" + company.getId() + "/logo");
+            }
         } catch (Exception e) {
             throw new RuntimeException("Failed to store company logo: " + e.getMessage(), e);
         }

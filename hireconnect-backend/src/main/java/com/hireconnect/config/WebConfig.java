@@ -1,15 +1,27 @@
 package com.hireconnect.config;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    @Value("${file.upload-dir:./uploads}")
+    private String uploadDir;
     
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        Path basePath = Paths.get(uploadDir).toAbsolutePath().normalize();
+        String location = basePath.toUri().toString();
+        if (!location.endsWith("/")) {
+            location += "/";
+        }
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:./uploads/");
+                .addResourceLocations(location);
     }
 }
