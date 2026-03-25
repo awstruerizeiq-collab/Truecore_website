@@ -27,6 +27,20 @@ public class SecurityConfig {
     
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    private static final String[] PUBLIC_ENDPOINTS = {
+        "/api/auth/**",
+        "/api/global-admin/companies/company-login",
+        "/api/company/**",
+        "/api/tickets/**",
+        "/api/users/**",
+        "/api/performance/**",
+        "/api/global-admin/**",
+        "/api/employee-details/**",
+        "/api/employees/**",
+        "/uploads/**",
+        "/error"
+    };
     
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -36,17 +50,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))            
             .authorizeHttpRequests(auth -> auth
             	    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            	    .requestMatchers("/api/global-admin/companies/company-login").permitAll()
-            	    .requestMatchers("/api/auth/**").permitAll()
-            	    .requestMatchers("/error").permitAll()
-            	    .requestMatchers("/uploads/**").permitAll()
-            	    .requestMatchers("/api/tickets/**").permitAll()
-            	    .requestMatchers("/api/users/**").permitAll()
-            	    .requestMatchers("/api/company/**").permitAll()
-            	    .requestMatchers("/api/performance/**").permitAll()
-            	    .requestMatchers("/api/global-admin/**").permitAll()
-
-            	    .anyRequest().permitAll())
+            	    .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+            	    .anyRequest().authenticated())
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class);
@@ -60,7 +65,9 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Arrays.asList(
             "http://localhost:*",
             "http://127.0.0.1:*",
-            "https://app.truecorehr.com"
+            "https://app.truecorehr.com",
+            "https://truecorehr.com",
+            "https://*.truecorehr.com"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 
